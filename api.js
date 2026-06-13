@@ -1,5 +1,14 @@
+// =============================================================================
+//  BehaviorVault — Mobile API client
+//  =============================================================================
+//  Talks ONLY to his own backend (BASE_URL). The ML scoring API lives behind
+//  the backend, so secrets never end up bundled in the mobile app.
+//
+//  Mobile  →  BASE_URL (Node.js)  →  bhv-api.nw-right.dev (Flask)
+//                                    ↑ all auth headers added here
+// =============================================================================
+
 const BASE_URL = 'https://behaviorvault-api.onrender.com';
-const ML_URL = 'https://bhv-api.nw-right.dev';
 
 // ─── PURE JAVASCRIPT CRYPTO IMPLEMENTATION (HMAC-SHA256) ───
 // Module-level cache (Hermes engine treats function properties as read-only)
@@ -123,6 +132,7 @@ const fetchWithTimeout = (url, options = {}, timeoutMs = 5000) => {
     .finally(() => clearTimeout(timer));
 };
 
+// ─── BEHAVIOR LOGGING (unchanged — talks to own backend) ──
 export const logBehavior = async (report, anomalyResult, userId = 'anonymous') => {
   try {
     // 1. Request a one-time nonce from the backend
@@ -179,6 +189,7 @@ export const logBehavior = async (report, anomalyResult, userId = 'anonymous') =
   }
 };
 
+// ─── DURESS ALERT (unchanged — talks to own backend) ──────
 export const sendDuressAlert = async (variance, amount, beneficiary, userId = 'anonymous') => {
   try {
     const response = await fetchWithTimeout(`${BASE_URL}/api/duress/alert`, {
@@ -202,32 +213,47 @@ export const sendDuressAlert = async (variance, amount, beneficiary, userId = 'a
   }
 };
 
+// ─── ML SCORE (REWRITTEN) ─────────────────────────────────
+//   Now goes through our backend, not the ML API directly.
+//   The backend at /api/ml/predict proxies to Flask with the
+//   X-API-Key + Cloudflare Access headers attached server-side.
+//   No secrets in the mobile bundle.
 export const getMLScore = async (report, userId = 'anonymous') => {
   try {
-    const response = await fetchWithTimeout(`${ML_URL}/predict`, {
+    const response = await fetchWithTimeout(`${BASE_URL}/api/ml/predict`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         userId: userId,
-        keystroke_avg_ms: report.keystroke_avg_ms || 200.58,
-        touch_pressure_avg: 0.5,
-        swipe_avg_px_per_sec: report.swipe_avg_px_per_sec || 450.47,
-        scroll_rhythm_ms: report.touch_avg_duration_ms || 179.25,
-        accelerometer_avg_variance: parseFloat(report.accelerometer_avg_variance) || 0.049,
+        keystroke_avg_ms:           report.keystroke_avg_ms,
+        touch_pressure_avg:         report.touch_pressure_avg ?? 0.5,   // TODO: measure for real
+        swipe_avg_px_per_sec:       report.swipe_avg_px_per_sec,
+        scroll_rhythm_ms:           report.touch_avg_duration_ms,
+        accelerometer_avg_variance: parseFloat(report.accelerometer_avg_variance),
       }),
     });
+
+    if (!response.ok) {
+      console.log(`ML score error: HTTP ${response.status}`);
+      return null;
+    }
+
     const data = await response.json();
-    console.log('TFLite ML — score:', data.score, '| confidence:', data.confidence_pct, '%  | level:', data.level);
+    console.log(
+      `TFLite ML — score: ${data.score} | confidence: ${data.confidence_pct}%`
+      + ` | level: ${data.level}`
+    );
+
     return {
-      score: data.score,                    // 0.0–1.0, use this for anomaly logic
-      confidencePct: data.confidence_pct,   // 0–100, ready for UI display
-      isAnomaly: data.is_anomaly,
-      learning: data.warmup_remaining > 0,
-      duress: data.score > 0.8 && report.duress_flag,
-      level: data.level,
+      score:          data.score,            // 0.0–1.0
+      confidencePct:  data.confidence_pct,   // 0–100, safe to display
+      isAnomaly:      data.is_anomaly,
+      learning:       data.warmup_remaining > 0,
+      duress:         data.score > 0.8 && report.duress_flag,
+      level:          data.level,
     };
   } catch (err) {
-    console.log('ML score error — using fallback:', err.message);
+    console.log('ML score error:', err.message);
     return null;
   }
 };

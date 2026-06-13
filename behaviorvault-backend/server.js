@@ -7,6 +7,7 @@ require('dotenv').config();
 const behaviorRoutes = require('./routes/behavior');
 const duressRoutes = require('./routes/duress');
 const consentRoutes = require('./routes/consent');
+const mlRouter = require('./routes/ml');
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use('/api/behavior', behaviorRoutes);
 app.use('/api/duress', duressRoutes);
 app.use('/api/consent', consentRoutes);
+app.use('/api/ml', mlRouter);
 
 // health check
 app.get('/', (req, res) => {
