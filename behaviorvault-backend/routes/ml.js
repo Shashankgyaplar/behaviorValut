@@ -22,18 +22,31 @@ const router = express.Router();
 const ML_BASE = process.env.BHV_API_URL || 'https://bhv-api.nw-right.dev';
 const TIMEOUT_MS = 8000;
 
-// Fail loudly if credentials aren't configured — better than silent 401s later.
+// Warn if credentials aren't configured (so build/deploy doesn't fail).
 function assertEnv() {
   const missing = ['BHV_API_KEY', 'CF_ACCESS_CLIENT_ID', 'CF_ACCESS_CLIENT_SECRET']
     .filter((v) => !process.env[v]);
   if (missing.length) {
-    throw new Error(
-      `Missing ML proxy env vars: ${missing.join(', ')}. ` +
-      `Set these in your hosting environment (Render dashboard → Environment).`
+    console.warn(
+      `[ml] WARNING: Missing ML proxy env vars: ${missing.join(', ')}. ` +
+      `Ensure these are set in your hosting environment (Render dashboard → Environment).`
     );
   }
 }
 assertEnv();
+
+// Middleware to check credentials at runtime rather than crashing on startup
+const checkEnvConfigured = (req, res, next) => {
+  const missing = ['BHV_API_KEY', 'CF_ACCESS_CLIENT_ID', 'CF_ACCESS_CLIENT_SECRET']
+    .filter((v) => !process.env[v]);
+  if (missing.length) {
+    return res.status(500).json({
+      error: 'ML Proxy is not configured on the server',
+      details: `Missing environment variables: ${missing.join(', ')}`
+    });
+  }
+  next();
+};
 
 // Standard auth headers attached to every upstream call
 function authHeaders() {
@@ -59,7 +72,7 @@ async function fetchWithTimeout(url, options) {
 // ─── POST /api/ml/predict ────────────────────────────────────────────────
 //   Proxies the body straight through, returns upstream response as-is.
 //   Mobile sends features → we add auth → upstream scores → we forward.
-router.post('/predict', async (req, res) => {
+router.post('/predict', checkEnvConfigured, async (req, res) => {
   const userId = req.body?.userId || 'anonymous';
   const t0 = Date.now();
 
@@ -92,7 +105,7 @@ router.post('/predict', async (req, res) => {
 
 // ─── GET /api/ml/baseline/:userId ────────────────────────────────────────
 //   View current baseline for a user (useful for debugging)
-router.get('/baseline/:userId', async (req, res) => {
+router.get('/baseline/:userId', checkEnvConfigured, async (req, res) => {
   try {
     const upstream = await fetchWithTimeout(
       `${ML_BASE}/baseline/${encodeURIComponent(req.params.userId)}`,
@@ -109,7 +122,7 @@ router.get('/baseline/:userId', async (req, res) => {
 // ─── DELETE /api/ml/baseline/:userId ─────────────────────────────────────
 //   Reset a user's baseline (call this when a user resets their account
 //   or when you need to clear pollution during testing)
-router.delete('/baseline/:userId', async (req, res) => {
+router.delete('/baseline/:userId', checkEnvConfigured, async (req, res) => {
   try {
     const upstream = await fetchWithTimeout(
       `${ML_BASE}/baseline/${encodeURIComponent(req.params.userId)}`,
@@ -126,7 +139,7 @@ router.delete('/baseline/:userId', async (req, res) => {
 
 // ─── GET /api/ml/health ──────────────────────────────────────────────────
 //   Health check that confirms our backend can reach the ML API
-router.get('/health', async (_req, res) => {
+router.get('/health', checkEnvConfigured, async (_req, res) => {
   try {
     const upstream = await fetchWithTimeout(`${ML_BASE}/health`, {
       method:  'GET',
