@@ -1,4 +1,4 @@
-const BASE_URL = 'http://10.199.244.142:5000';
+const BASE_URL = 'https://behaviorvault-api.onrender.com';
 const ML_URL = 'https://bhv-api.nw-right.dev';
 
 // ─── PURE JAVASCRIPT CRYPTO IMPLEMENTATION (HMAC-SHA256) ───
