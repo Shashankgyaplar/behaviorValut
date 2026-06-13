@@ -94,10 +94,22 @@ router.post('/log', async (req, res) => {
   }
 });
 
+const resolveUserIds = (userId) => {
+  const lower = String(userId).toLowerCase();
+  if (lower === 'shashank' || lower === '190204') {
+    return ['shashank', '190204'];
+  }
+  if (lower === 'shashwath' || lower === '4405') {
+    return ['shashwath', '4405'];
+  }
+  return [userId];
+};
+
 // GET /api/behavior/sessions/:userId — get all sessions for a user
 router.get('/sessions/:userId', async (req, res) => {
   try {
-    const sessions = await Session.find({ userId: req.params.userId })
+    const userIds = resolveUserIds(req.params.userId);
+    const sessions = await Session.find({ userId: { $in: userIds } })
       .sort({ timestamp: -1 })
       .limit(20);
     res.json({ success: true, sessions });

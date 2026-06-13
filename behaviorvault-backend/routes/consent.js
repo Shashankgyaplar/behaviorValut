@@ -2,13 +2,25 @@ const express = require('express');
 const router = express.Router();
 const ConsentLog = require('../models/ConsentLog');
 
+const resolveUserIds = (userId) => {
+  const lower = String(userId).toLowerCase();
+  if (lower === 'shashank' || lower === '190204') {
+    return ['shashank', '190204'];
+  }
+  if (lower === 'shashwath' || lower === '4405') {
+    return ['shashwath', '4405'];
+  }
+  return [userId];
+};
+
 // GET /api/consent/:userId — what data was collected
 router.get('/:userId', async (req, res) => {
   try {
-    let consent = await ConsentLog.findOne({ userId: req.params.userId });
+    const userIds = resolveUserIds(req.params.userId);
+    let consent = await ConsentLog.findOne({ userId: { $in: userIds } });
 
     if (!consent) {
-      // create default consent log
+      // create default consent log using the requested ID
       consent = new ConsentLog({
         userId: req.params.userId,
         signals_collected: [
@@ -64,8 +76,9 @@ router.delete('/:userId', async (req, res) => {
     }
 
     // behavioral data CAN be deleted (DPDP Act)
-    await ConsentLog.findOneAndUpdate(
-      { userId: req.params.userId },
+    const userIds = resolveUserIds(req.params.userId);
+    await ConsentLog.updateMany(
+      { userId: { $in: userIds } },
       {
         behavioral_data_deleted: true,
         behavioral_deleted_at: new Date(),
