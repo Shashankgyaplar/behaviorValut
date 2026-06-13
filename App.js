@@ -350,7 +350,7 @@ export default function App() {
                   value={username}
                   onChangeText={setUsername}
                   onKeyPress={handleKeyPress}
-                  keyboardType="numeric"
+                  keyboardType="default"
                 />
               </View>
 
