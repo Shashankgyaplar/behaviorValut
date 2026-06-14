@@ -101,6 +101,8 @@ router.delete('/:userId', async (req, res) => {
 
     // behavioral data CAN be deleted (DPDP Act)
     const userIds = resolveUserIds(req.params.userId);
+    
+    // 1. Mark consent as deleted
     await ConsentLog.updateMany(
       { userId: { $in: userIds } },
       {
@@ -109,6 +111,35 @@ router.delete('/:userId', async (req, res) => {
         signals_collected: [],
       }
     );
+
+    // 2. Erase all raw session telemetry from database (DPDP Compliance)
+    const Session = require('../models/Session');
+    await Session.deleteMany({ userId: { $in: userIds } });
+
+    // 3. Clear the ML baseline in the upstream ML microservice
+    const ML_BASE = process.env.BHV_API_URL || 'https://bhv-api.nw-right.dev';
+    const cleanKey = (process.env.BHV_API_KEY || '').replace(/\\n/g, '\n').trim();
+    const cleanId = (process.env.CF_ACCESS_CLIENT_ID || '').replace(/\\n/g, '\n').trim();
+    const cleanSecret = (process.env.CF_ACCESS_CLIENT_SECRET || '').replace(/\\n/g, '\n').trim();
+
+    try {
+      await Promise.all(
+        userIds.map(async (uId) => {
+          await fetch(`${ML_BASE}/baseline/${encodeURIComponent(uId)}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-Key': cleanKey,
+              'CF-Access-Client-Id': cleanId,
+              'CF-Access-Client-Secret': cleanSecret,
+            },
+          });
+        })
+      );
+      console.log(`[consent] Successfully reset ML baselines upstream for user IDs: ${userIds.join(', ')}`);
+    } catch (mlErr) {
+      console.error('[consent] Failed to reset ML baselines upstream:', mlErr.message);
+    }
 
     res.json({
       success: true,
