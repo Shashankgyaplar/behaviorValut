@@ -29,6 +29,7 @@ const getDisplayName = (userId) => {
   if (lower === 'pavan' || lower === '190106') return 'Pavan';
   if (lower === 'shetty' || lower === '201004') return 'Shetty';
   if (lower === 'boss' || lower === '290804') return 'Boss';
+  if (lower === 'priya' || lower === '71105') return 'Priya';
   
   return userId.charAt(0).toUpperCase() + userId.slice(1);
 };
