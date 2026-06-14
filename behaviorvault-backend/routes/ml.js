@@ -22,6 +22,13 @@ const router = express.Router();
 const ML_BASE = process.env.BHV_API_URL || 'https://bhv-api.nw-right.dev';
 const TIMEOUT_MS = 8000;
 
+// Clean and retrieve env variable, stripping whitespace or surrounding quotes
+function getCleanEnv(key) {
+  const val = process.env[key];
+  if (!val) return '';
+  return val.trim().replace(/^['"]|['"]$/g, '');
+}
+
 // Warn if credentials aren't configured (so build/deploy doesn't fail).
 function assertEnv() {
   const missing = ['BHV_API_KEY', 'CF_ACCESS_CLIENT_ID', 'CF_ACCESS_CLIENT_SECRET']
@@ -30,6 +37,13 @@ function assertEnv() {
     console.warn(
       `[ml] WARNING: Missing ML proxy env vars: ${missing.join(', ')}. ` +
       `Ensure these are set in your hosting environment (Render dashboard → Environment).`
+    );
+  } else {
+    console.log(
+      `[ml] ML proxy env vars present. ` +
+      `BHV_API_KEY len: ${getCleanEnv('BHV_API_KEY').length}, ` +
+      `CF_ACCESS_CLIENT_ID len: ${getCleanEnv('CF_ACCESS_CLIENT_ID').length}, ` +
+      `CF_ACCESS_CLIENT_SECRET len: ${getCleanEnv('CF_ACCESS_CLIENT_SECRET').length}`
     );
   }
 }
@@ -52,9 +66,9 @@ const checkEnvConfigured = (req, res, next) => {
 function authHeaders() {
   return {
     'Content-Type':              'application/json',
-    'X-API-Key':                 process.env.BHV_API_KEY,
-    'CF-Access-Client-Id':       process.env.CF_ACCESS_CLIENT_ID,
-    'CF-Access-Client-Secret':   process.env.CF_ACCESS_CLIENT_SECRET,
+    'X-API-Key':                 getCleanEnv('BHV_API_KEY'),
+    'CF-Access-Client-Id':       getCleanEnv('CF_ACCESS_CLIENT_ID'),
+    'CF-Access-Client-Secret':   getCleanEnv('CF_ACCESS_CLIENT_SECRET'),
   };
 }
 
