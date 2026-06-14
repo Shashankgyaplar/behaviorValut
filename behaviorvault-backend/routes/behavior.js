@@ -102,20 +102,20 @@ const resolveUserIds = (userId) => {
   if (lower === 'shashwath' || lower === '4405') {
     return ['shashwath', '4405'];
   }
-  if (lower === '120305') {
-    return ['120305'];
+  if (lower === 'vincent' || lower === '120305') {
+    return ['vincent', '120305'];
   }
-  if (lower === '070604') {
-    return ['070604'];
+  if (lower === 'shashanks' || lower === '070604') {
+    return ['shashanks', '070604'];
   }
-  if (lower === '221104') {
-    return ['221104'];
+  if (lower === 'dhyan' || lower === '221104') {
+    return ['dhyan', '221104'];
   }
   if (lower === '91104') {
     return ['91104'];
   }
-  if (lower === '4406') {
-    return ['4406'];
+  if (lower === 'x' || lower === '4406') {
+    return ['x', '4406'];
   }
   return [userId];
 };
