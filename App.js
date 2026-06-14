@@ -4,7 +4,7 @@ import {
   TouchableOpacity, TextInput,
   ScrollView, SafeAreaView,
   KeyboardAvoidingView, Platform,
-  Animated, ActivityIndicator
+  Animated, ActivityIndicator, Alert
 } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { useBehaviorTracker } from './BehaviorTracker';
@@ -34,6 +34,29 @@ export default function App() {
   const accelSub = useRef(null);
   const [accessibilityMode, setAccessibilityMode] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  // Anti-paste: track previous input length to detect bulk text insertion
+  const prevUsernameLen = useRef(0);
+  const prevPasswordLen = useRef(0);
+
+  const handleSafeUsername = (text) => {
+    if (text.length - prevUsernameLen.current > 2) {
+      // Paste detected — reject it
+      Alert.alert('Paste Blocked', 'Please type your User ID manually. BehaviorVault needs your typing pattern to verify your identity.');
+      return;
+    }
+    prevUsernameLen.current = text.length;
+    setUsername(text);
+  };
+
+  const handleSafePassword = (text) => {
+    if (text.length - prevPasswordLen.current > 2) {
+      Alert.alert('Paste Blocked', 'Please type your Password manually. BehaviorVault needs your typing pattern to verify your identity.');
+      return;
+    }
+    prevPasswordLen.current = text.length;
+    setPassword(text);
+  };
 
   // Animations
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -126,6 +149,8 @@ export default function App() {
       resetSession();
       setUsername('');
       setPassword('');
+      prevUsernameLen.current = 0;
+      prevPasswordLen.current = 0;
       setIsLoggingIn(false);
       alert('Automated attack detected. Session terminated.');
       console.log('BOT BLOCKED — session terminated immediately');
@@ -135,6 +160,8 @@ export default function App() {
     resetSession();
     setUsername('');
     setPassword('');
+    prevUsernameLen.current = 0;
+    prevPasswordLen.current = 0;
 
     const totalSessions = await saveSession(report);
     setSessionCount(totalSessions);
@@ -350,9 +377,12 @@ export default function App() {
                   placeholder="Enter your User ID"
                   placeholderTextColor="#64748B"
                   value={username}
-                  onChangeText={setUsername}
+                  onChangeText={handleSafeUsername}
                   onKeyPress={handleKeyPress}
                   keyboardType="default"
+                  contextMenuHidden={true}
+                  autoComplete="off"
+                  selectTextOnFocus={false}
                 />
               </View>
 
@@ -363,9 +393,12 @@ export default function App() {
                   placeholder="Enter your Password"
                   placeholderTextColor="#64748B"
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={handleSafePassword}
                   onKeyPress={handleKeyPress}
                   secureTextEntry
+                  contextMenuHidden={true}
+                  autoComplete="off"
+                  selectTextOnFocus={false}
                 />
               </View>
 
