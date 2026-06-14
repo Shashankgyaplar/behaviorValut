@@ -102,6 +102,21 @@ const resolveUserIds = (userId) => {
   if (lower === 'shashwath' || lower === '4405') {
     return ['shashwath', '4405'];
   }
+  if (lower === '120305') {
+    return ['120305'];
+  }
+  if (lower === '070604') {
+    return ['070604'];
+  }
+  if (lower === '221104') {
+    return ['221104'];
+  }
+  if (lower === '91104') {
+    return ['91104'];
+  }
+  if (lower === '4406') {
+    return ['4406'];
+  }
   return [userId];
 };
 

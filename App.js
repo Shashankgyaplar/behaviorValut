@@ -30,6 +30,7 @@ export default function App() {
   const [secretTaps, setSecretTaps] = useState(0);
   const [showReset, setShowReset] = useState(false);
   const [lastScore, setLastScore] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState('anonymous');
   const accelSub = useRef(null);
   const [accessibilityMode, setAccessibilityMode] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -117,7 +118,8 @@ export default function App() {
 
     setIsLoggingIn(true);
     const report = getAnomalyReport();
-    const currentUserId = username || 'anonymous'; // ── #5: capture before clearing
+    const loginUserId = username || 'anonymous'; // ── #5: capture before clearing
+    setCurrentUserId(loginUserId); // persist for HomeScreen duress alerts
 
     // ─── BOT CHECK — block immediately ───────────────────
     if (report.synthetic_bot_detected) {
@@ -140,7 +142,7 @@ export default function App() {
     if (totalSessions === 3) {
       await buildBaseline();
       setLearningStatus('BehaviorEngine Active');
-      logBehavior(report, null, currentUserId); // fire and forget
+      logBehavior(report, null, loginUserId); // fire and forget
       setIsLoggingIn(false);
       alert('Baseline learned! BehaviorEngine is now active.');
       return;
@@ -148,7 +150,7 @@ export default function App() {
 
     if (totalSessions < 3) {
       setLearningStatus(`Learning your behavior... (${totalSessions}/3 sessions)`);
-      logBehavior(report, null, currentUserId); // fire and forget
+      logBehavior(report, null, loginUserId); // fire and forget
       setIsLoggingIn(false);
       alert(`Session ${totalSessions}/3 recorded. Login ${3 - totalSessions} more time(s) to activate BehaviorEngine.`);
       return;
@@ -158,7 +160,7 @@ export default function App() {
     // Run both detectors in parallel for speed
     const [statResult, mlResult] = await Promise.all([
       getAnomalyScore(report, accessibilityMode),
-      getMLScore(report, currentUserId),
+      getMLScore(report, loginUserId),
     ]);
 
     console.log('Statistical Z-score detector — score:', statResult?.score, '| isAnomaly:', statResult?.isAnomaly);
@@ -196,7 +198,7 @@ export default function App() {
     result.duress = result.duress || report.duress_flag;
 
     // ─── PARALLEL: log + duress alert at the same time ───
-    const parallelTasks = [logBehavior(report, result, currentUserId)];
+    const parallelTasks = [logBehavior(report, result, loginUserId)];
 
     // ─── Check duress_flag independently ───
     if (result.duress || report.duress_flag) {
@@ -205,7 +207,7 @@ export default function App() {
           parseFloat(report.accelerometer_avg_variance),
           0,
           'unknown',
-          currentUserId
+          loginUserId
         )
       );
       console.log('SILENT DURESS FLAG SENT');
@@ -266,7 +268,7 @@ export default function App() {
         onToggleAccessibility={() => setAccessibilityMode(prev => !prev)}
         onLogout={() => setShowHome(false)}
         onDuress={async (variance) => {
-          await sendDuressAlert(variance, 0, 'unknown');
+          await sendDuressAlert(variance, 0, 'unknown', currentUserId);
         }}
         onAnomaly={(action) => {
           setAnomalyReason('Additional verification required for your security');
