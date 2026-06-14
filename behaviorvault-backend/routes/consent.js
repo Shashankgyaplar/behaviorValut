@@ -10,6 +10,30 @@ const resolveUserIds = (userId) => {
   if (lower === 'shashwath' || lower === '4405') {
     return ['shashwath', '4405'];
   }
+  if (lower === 'vincent' || lower === '120305') {
+    return ['vincent', '120305'];
+  }
+  if (lower === 'shashanks' || lower === '070604') {
+    return ['shashanks', '070604'];
+  }
+  if (lower === 'dhyan' || lower === '221104') {
+    return ['dhyan', '221104'];
+  }
+  if (lower === 'dishan' || lower === '91104') {
+    return ['dishan', '91104'];
+  }
+  if (lower === 'x' || lower === '4406') {
+    return ['x', '4406'];
+  }
+  if (lower === 'pavan' || lower === '190106') {
+    return ['pavan', '190106'];
+  }
+  if (lower === 'shetty' || lower === '201004') {
+    return ['shetty', '201004'];
+  }
+  if (lower === 'boss' || lower === '290804') {
+    return ['boss', '290804'];
+  }
   return [userId];
 };
 
