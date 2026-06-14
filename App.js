@@ -312,6 +312,7 @@ export default function App() {
         accessibilityMode={accessibilityMode}
         onToggleAccessibility={() => setAccessibilityMode(prev => !prev)}
         onLogout={() => setShowHome(false)}
+        currentUserId={currentUserId}
         onDuress={async (variance) => {
           await sendDuressAlert(variance, 0, 'unknown', currentUserId);
         }}

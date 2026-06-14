@@ -17,13 +17,30 @@ const calculateDuressScore = (variance, contextFactors) => {
   return score;
 };
 
+const getDisplayName = (userId) => {
+  const lower = String(userId).toLowerCase();
+  if (lower === 'shashank' || lower === '190204') return 'Shashank';
+  if (lower === 'shashwath' || lower === '4405') return 'Shashwath';
+  if (lower === 'vincent' || lower === '120305') return 'Vincent';
+  if (lower === 'shashanks' || lower === '070604') return 'Shashanks';
+  if (lower === 'dhyan' || lower === '221104') return 'Dhyan';
+  if (lower === 'dishan' || lower === '91104') return 'Dishan';
+  if (lower === 'vijay' || lower === '120706') return 'Vijay';
+  if (lower === 'pavan' || lower === '190106') return 'Pavan';
+  if (lower === 'shetty' || lower === '201004') return 'Shetty';
+  if (lower === 'boss' || lower === '290804') return 'Boss';
+  
+  return userId.charAt(0).toUpperCase() + userId.slice(1);
+};
+
 export default function HomeScreen({
   onLogout,
   onDuress,
   onAnomaly,
   lastScore,
   accessibilityMode,
-  onToggleAccessibility
+  onToggleAccessibility,
+  currentUserId = 'anonymous'
 }) {
   const [accelVariance, setAccelVariance] = useState(0);
   const [duressWarning, setDuressWarning] = useState(false);
@@ -148,7 +165,7 @@ export default function HomeScreen({
                   return 'Good evening';
                 })()
               }</Text>
-              <Text style={styles.userName}>{'Welcome Back'}</Text>
+              <Text style={styles.userName}>{'Welcome Back, ' + getDisplayName(currentUserId)}</Text>
             </View>
             <TouchableOpacity style={styles.logoutBtn} onPress={onLogout} activeOpacity={0.7}>
               <Text style={styles.logoutText}>{'Logout'}</Text>
