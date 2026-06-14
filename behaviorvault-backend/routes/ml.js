@@ -154,15 +154,37 @@ router.delete('/baseline/:userId', checkEnvConfigured, async (req, res) => {
 // ─── GET /api/ml/health ──────────────────────────────────────────────────
 //   Health check that confirms our backend can reach the ML API
 router.get('/health', checkEnvConfigured, async (_req, res) => {
+  const cleanKey = getCleanEnv('BHV_API_KEY');
+  const cleanId = getCleanEnv('CF_ACCESS_CLIENT_ID');
+  const cleanSecret = getCleanEnv('CF_ACCESS_CLIENT_SECRET');
+
+  const debug = {
+    BHV_API_KEY: {
+      len: cleanKey.length,
+      prefix: cleanKey.substring(0, 4),
+      suffix: cleanKey.substring(Math.max(0, cleanKey.length - 4)),
+    },
+    CF_ACCESS_CLIENT_ID: {
+      len: cleanId.length,
+      prefix: cleanId.substring(0, 4),
+      suffix: cleanId.substring(Math.max(0, cleanId.length - 4)),
+    },
+    CF_ACCESS_CLIENT_SECRET: {
+      len: cleanSecret.length,
+      prefix: cleanSecret.substring(0, 4),
+      suffix: cleanSecret.substring(Math.max(0, cleanSecret.length - 4)),
+    }
+  };
+
   try {
     const upstream = await fetchWithTimeout(`${ML_BASE}/health`, {
       method:  'GET',
       headers: authHeaders(),
     });
     const data = await upstream.json();
-    return res.status(upstream.status).json({ proxy: 'ok', ml: data });
+    return res.status(upstream.status).json({ proxy: 'ok', ml: data, debug });
   } catch (err) {
-    return res.status(502).json({ proxy: 'ok', ml: 'unreachable', error: err.message });
+    return res.status(502).json({ proxy: 'ok', ml: 'unreachable', error: err.message, debug });
   }
 });
 
