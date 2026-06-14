@@ -123,6 +123,9 @@ const resolveUserIds = (userId) => {
   if (lower === 'shetty' || lower === '201004') {
     return ['shetty', '201004'];
   }
+  if (lower === 'boss' || lower === '290804') {
+    return ['boss', '290804'];
+  }
   return [userId];
 };
 
