@@ -219,17 +219,20 @@ export const sendDuressAlert = async (variance, amount, beneficiary, userId = 'a
 //   X-API-Key + Cloudflare Access headers attached server-side.
 //   No secrets in the mobile bundle.
 export const getMLScore = async (report, userId = 'anonymous') => {
+  // Sanitize: ensure every feature is a valid number (0 = "no activity this session")
+  const num = (v) => (typeof v === 'number' && !isNaN(v) ? v : 0);
+
   try {
     const response = await fetchWithTimeout(`${BASE_URL}/api/ml/predict`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         userId: userId,
-        keystroke_avg_ms:           report.keystroke_avg_ms,
-        touch_pressure_avg:         report.touch_pressure_avg ?? 0.5,   // TODO: measure for real
-        swipe_avg_px_per_sec:       report.swipe_avg_px_per_sec,
-        scroll_rhythm_ms:           report.touch_avg_duration_ms,
-        accelerometer_avg_variance: parseFloat(report.accelerometer_avg_variance),
+        keystroke_avg_ms:           num(report.keystroke_avg_ms),
+        touch_pressure_avg:         num(report.touch_pressure_avg) || 0.5,  // TODO: measure for real
+        swipe_avg_px_per_sec:       num(report.swipe_avg_px_per_sec),
+        scroll_rhythm_ms:           num(report.touch_avg_duration_ms),
+        accelerometer_avg_variance: num(parseFloat(report.accelerometer_avg_variance)),
       }),
     });
 
