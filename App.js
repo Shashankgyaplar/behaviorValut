@@ -22,6 +22,8 @@ import { logBehavior, sendDuressAlert, getMLScore } from './api';
 export default function App() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const toggleScale = useRef(new Animated.Value(1)).current;
   const [sessionCount, setSessionCount] = useState(0);
   const [showOTP, setShowOTP] = useState(false);
   const [showHome, setShowHome] = useState(false);
@@ -56,6 +58,22 @@ export default function App() {
     }
     prevPasswordLen.current = text.length;
     setPassword(text);
+  };
+
+  const handleTogglePress = () => {
+    Animated.sequence([
+      Animated.timing(toggleScale, {
+        toValue: 0.82,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+      Animated.timing(toggleScale, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      })
+    ]).start();
+    setShowPassword(!showPassword);
   };
 
   // Animations
@@ -388,18 +406,31 @@ export default function App() {
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>{'Password'}</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your Password"
-                  placeholderTextColor="#64748B"
-                  value={password}
-                  onChangeText={handleSafePassword}
-                  onKeyPress={handleKeyPress}
-                  secureTextEntry
-                  contextMenuHidden={true}
-                  autoComplete="off"
-                  selectTextOnFocus={false}
-                />
+                <View style={styles.passwordWrapper}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    placeholder="Enter your Password"
+                    placeholderTextColor="#64748B"
+                    value={password}
+                    onChangeText={handleSafePassword}
+                    onKeyPress={handleKeyPress}
+                    secureTextEntry={!showPassword}
+                    contextMenuHidden={true}
+                    autoComplete="off"
+                    selectTextOnFocus={false}
+                  />
+                  <TouchableOpacity 
+                    onPress={handleTogglePress}
+                    activeOpacity={0.8}
+                    style={styles.toggleButton}
+                  >
+                    <Animated.View style={{ transform: [{ scale: toggleScale }] }}>
+                      <Text style={styles.toggleText}>
+                        {showPassword ? 'Hide' : 'Show'}
+                      </Text>
+                    </Animated.View>
+                  </TouchableOpacity>
+                </View>
               </View>
 
               <TouchableOpacity
@@ -615,6 +646,36 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  passwordWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(9, 13, 22, 0.85)',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    paddingRight: 8,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingVertical: 15,
+    paddingHorizontal: 16,
+    color: '#FFFFFF',
+    fontSize: 15,
+    letterSpacing: 0,
+  },
+  toggleButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  toggleText: {
+    color: '#10B981',
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
 
   // Button
