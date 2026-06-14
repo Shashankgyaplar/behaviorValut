@@ -111,8 +111,8 @@ const resolveUserIds = (userId) => {
   if (lower === 'dhyan' || lower === '221104') {
     return ['dhyan', '221104'];
   }
-  if (lower === '91104') {
-    return ['91104'];
+  if (lower === 'dishan' || lower === '91104') {
+    return ['dishan', '91104'];
   }
   if (lower === 'x' || lower === '4406') {
     return ['x', '4406'];
