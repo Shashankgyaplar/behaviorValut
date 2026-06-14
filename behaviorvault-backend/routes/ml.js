@@ -181,8 +181,20 @@ router.get('/health', checkEnvConfigured, async (_req, res) => {
       method:  'GET',
       headers: authHeaders(),
     });
-    const data = await upstream.json();
-    return res.status(upstream.status).json({ proxy: 'ok', ml: data, debug });
+    const text = await upstream.text();
+    try {
+      const data = JSON.parse(text);
+      return res.status(upstream.status).json({ proxy: 'ok', ml: data, debug });
+    } catch (parseErr) {
+      return res.status(502).json({
+        proxy: 'ok',
+        ml: 'unreachable',
+        error: 'Response was not valid JSON',
+        status: upstream.status,
+        bodySample: text.substring(0, 500),
+        debug
+      });
+    }
   } catch (err) {
     return res.status(502).json({ proxy: 'ok', ml: 'unreachable', error: err.message, debug });
   }
