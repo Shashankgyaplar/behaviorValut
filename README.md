@@ -1,5 +1,8 @@
 # 🔐 BehaviorVault 2.0
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 > **Continuous Behavioral Authentication System for Mobile Banking**
+
 
 BehaviorVault 2.0 is a next-generation security and compliance layer designed for mobile banking applications. By continuously measuring and scoring micro-interactions—typing rhythm, swipe speed, scroll patterns, touch pressure, and accelerometer variance—it verifies user identity throughout the active session, detecting credential sharing, coerced transactions, and automated bot attacks in real time.
 
@@ -182,3 +185,9 @@ Built with code and care by:
 * **Shashwath V** ([@shashwathv](https://github.com/shashwathv))
 * **Shashank G Yaplar** ([@Shashankgyaplar](https://github.com/Shashankgyaplar))
 * **Shashank S** ([@shashanks](https://github.com/shashanks))
+
+---
+
+## 📄 License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
