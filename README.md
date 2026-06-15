@@ -102,15 +102,15 @@ graph TD
   </table>
 
   <br/>
-  <h3>Compliance Console & Dev Logs</h3>
+  <h3>ConsentCockpit Compliance Portal</h3>
   <table style="width: 100%;">
     <tr>
-      <td width="50%"><img src="assets/cockpit_login.jpg" alt="ConsentCockpit Login" width="100%"/></td>
-      <td width="50%"><img src="assets/terminal_logs.png" alt="Telemetry Telemetry Logs" width="100%"/></td>
+      <td width="50%"><img src="assets/cockpit_auditlog.png" alt="ConsentCockpit Audit Log" width="100%"/></td>
+      <td width="50%"><img src="assets/cockpit_datarights.png" alt="ConsentCockpit Data Rights" width="100%"/></td>
     </tr>
     <tr align="center">
-      <td><b>ConsentCockpit Admin Portal</b></td>
-      <td><b>Real-time Telemetry Dev Logs</b></td>
+      <td><b>Compliance Audit Log Ledger</b></td>
+      <td><b>DPDP Act Data Rights Control Console</b></td>
     </tr>
   </table>
 </div>
