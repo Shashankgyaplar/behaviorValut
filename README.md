@@ -81,6 +81,40 @@ graph TD
     end
 ```
 
+
+---
+
+## 📸 Visual Showcase
+
+<div align="center">
+  <h3>Mobile Application</h3>
+  <table style="width: 100%;">
+    <tr>
+      <td width="33%"><img src="assets/mobile_login.jpg" alt="Mobile Login" width="100%"/></td>
+      <td width="33%"><img src="assets/mobile_home.jpg" alt="Mobile Home Screen" width="100%"/></td>
+      <td width="33%"><img src="assets/otp_stepup.jpg" alt="OTP Step-up Verification" width="100%"/></td>
+    </tr>
+    <tr align="center">
+      <td><b>Mobile Login Screen</b></td>
+      <td><b>Adaptive Trust Home Screen</b></td>
+      <td><b>Step-Up Verification (High Anomaly)</b></td>
+    </tr>
+  </table>
+
+  <br/>
+  <h3>Compliance Console & Dev Logs</h3>
+  <table style="width: 100%;">
+    <tr>
+      <td width="50%"><img src="assets/cockpit_login.jpg" alt="ConsentCockpit Login" width="100%"/></td>
+      <td width="50%"><img src="assets/terminal_logs.png" alt="Telemetry Telemetry Logs" width="100%"/></td>
+    </tr>
+    <tr align="center">
+      <td><b>ConsentCockpit Admin Portal</b></td>
+      <td><b>Real-time Telemetry Dev Logs</b></td>
+    </tr>
+  </table>
+</div>
+
 ---
 
 ## 📱 Try the Application
@@ -95,7 +129,7 @@ To run the live build on your iPhone or Android device via the public Expo tunne
 2. Scan the QR code below or open the tunnel link on your mobile browser:
    * **Tunnel Link:** `exp://nhxbmh0-shashank_1910-8081.exp.direct`
 
-![Expo Go QR Code](https://raw.githubusercontent.com/Shashankgyaplar/behaviorValut/main/expo_qr_code.png)
+![Expo Go QR Code](assets/expo_qr_code.png)
 
 ### 🖥️ Live Dashboard (ConsentCockpit)
 Access the live admin console at:
