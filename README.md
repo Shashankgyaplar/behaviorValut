@@ -126,14 +126,6 @@ graph TD
 Download the compiled APK directly to your device (no Expo required):
 👉 **[Download Android APK v2.4](https://expo.dev/artifacts/eas/8gLYnWTD8aI9_smfvXoJ43BKz6pZEvlbXi40nTpARgE.apk)**
 
-### 📱 iOS & Android via Expo Go
-To run the live build on your iPhone or Android device via the public Expo tunnel:
-1. Install **Expo Go** from the App/Play Store.
-2. Scan the QR code below or open the tunnel link on your mobile browser:
-   * **Tunnel Link:** `exp://nhxbmh0-shashank_1910-8081.exp.direct`
-
-![Expo Go QR Code](assets/expo_qr_code.png)
-
 ### 🖥️ Live Dashboard (ConsentCockpit)
 Access the live admin console at:
 🔗 **[https://cockpitbv.onrender.com](https://cockpitbv.onrender.com)**
