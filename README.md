@@ -176,7 +176,7 @@ Access the live admin console at:
 Built with code and care by:
 * **Shashwath V** ([@shashwathv](https://github.com/shashwathv))
 * **Shashank G Yaplar** ([@Shashankgyaplar](https://github.com/Shashankgyaplar))
-
+* **Shashank S * ([@SHASHANKS46](https://github.com/SHASHANKS46))
 
 ---
 
