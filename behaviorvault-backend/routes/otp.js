@@ -21,7 +21,7 @@ router.post('/generate', async (req, res) => {
 
     console.log(`\n==========================================\n[SECURITY ALERT] Generated OTP for user ${userId}: ${randomOtp}\n==========================================\n`);
 
-    res.json({ success: true, message: 'OTP generated successfully' });
+    res.json({ success: true, message: 'OTP generated successfully', otp: randomOtp });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

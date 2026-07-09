@@ -307,7 +307,15 @@ export default function App() {
   useEffect(() => {
     if (showOTP) {
       const activeUser = currentUserId || username || 'demo_user';
-      generateOTP(activeUser).catch(e => console.log('Error triggering OTP:', e));
+      generateOTP(activeUser).then(otp => {
+        if (otp) {
+          Alert.alert(
+            "Simulated SMS Notification",
+            `Your BehaviorVault verification code is: ${otp}`,
+            [{ text: "OK" }]
+          );
+        }
+      }).catch(e => console.log('Error triggering OTP:', e));
     }
   }, [showOTP]);
 

@@ -281,10 +281,10 @@ export const generateOTP = async (userId) => {
       body: JSON.stringify({ userId }),
     });
     const data = await response.json();
-    return data.success;
+    return data.success ? data.otp : null;
   } catch (err) {
     console.log('Generate OTP error:', err.message);
-    return false;
+    return null;
   }
 };
 
