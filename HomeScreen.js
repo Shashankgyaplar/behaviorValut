@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet, Text, View,
   TouchableOpacity, ScrollView,
-  SafeAreaView, Animated,
+  SafeAreaView, Animated, BackHandler,
 } from 'react-native';
 import { Accelerometer } from 'expo-sensors';
 import TransferScreen from './TransferScreen';
@@ -57,6 +57,26 @@ export default function HomeScreen({
       setActiveView('transfer');
     }
   }, [completedTransfer]);
+
+  useEffect(() => {
+    const backAction = () => {
+      if (activeView !== 'home') {
+        setActiveView('home');
+        if (onClearCompletedTransfer) {
+          onClearCompletedTransfer();
+        }
+        return true; // Intercept & block app exit
+      }
+      return false; // Let default behavior happen (exit app)
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [activeView, onClearCompletedTransfer]);
   const [accelVariance, setAccelVariance] = useState(0);
   const [duressWarning, setDuressWarning] = useState(false);
   const [duressScore, setDuressScore] = useState(0);
