@@ -133,12 +133,6 @@ export default function HomeScreen({
       }
     });
 
-    // Entrance animations
-    Animated.parallel([
-      Animated.timing(fadeIn, { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.timing(slideUp, { toValue: 0, duration: 600, useNativeDriver: true }),
-    ]).start();
-
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, { toValue: 1.5, duration: 1000, useNativeDriver: true }),
@@ -151,6 +145,18 @@ export default function HomeScreen({
       clearTimeout(duressTimeout.current);
     };
   }, []);
+
+  // Trigger entrance animations whenever we return to the main dashboard
+  useEffect(() => {
+    if (activeView === 'home') {
+      fadeIn.setValue(0);
+      slideUp.setValue(30);
+      Animated.parallel([
+        Animated.timing(fadeIn, { toValue: 1, duration: 600, useNativeDriver: true }),
+        Animated.timing(slideUp, { toValue: 0, duration: 600, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [activeView]);
 
   const handleTransfer = () => {
     setActiveView('transfer');
