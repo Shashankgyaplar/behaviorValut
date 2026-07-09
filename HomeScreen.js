@@ -5,6 +5,9 @@ import {
   SafeAreaView, Animated,
 } from 'react-native';
 import { Accelerometer } from 'expo-sensors';
+import TransferScreen from './TransferScreen';
+import DepositScreen from './DepositScreen';
+import HistoryScreen from './HistoryScreen';
 
 const calculateDuressScore = (variance, contextFactors) => {
   let score = 0;
@@ -41,8 +44,11 @@ export default function HomeScreen({
   isOffline,
   accessibilityMode,
   onToggleAccessibility,
-  currentUserId = 'anonymous'
+  currentUserId = 'anonymous',
+  handleKeyPress,
+  onMidSessionCheck,
 }) {
+  const [activeView, setActiveView] = useState('home');
   const [accelVariance, setAccelVariance] = useState(0);
   const [duressWarning, setDuressWarning] = useState(false);
   const [duressScore, setDuressScore] = useState(0);
@@ -119,7 +125,22 @@ export default function HomeScreen({
   }, []);
 
   const handleTransfer = () => {
-    onAnomaly && onAnomaly('transfer');
+    setActiveView('transfer');
+  };
+
+  const handleDeposit = () => {
+    setActiveView('deposit');
+  };
+
+  const handleHistory = () => {
+    setActiveView('history');
+  };
+
+  const handleSendMoney = async (transferDetails) => {
+    if (onMidSessionCheck) {
+      return await onMidSessionCheck(transferDetails);
+    }
+    return true;
   };
 
   const getTrustColor = () => {
@@ -142,6 +163,35 @@ export default function HomeScreen({
   };
 
   const isDuressActive = accelVariance > 1.2;
+
+  // Sub-screen routing
+  if (activeView === 'transfer') {
+    return (
+      <TransferScreen
+        onBack={() => setActiveView('home')}
+        onSendMoney={handleSendMoney}
+        handleKeyPress={handleKeyPress}
+      />
+    );
+  }
+
+  if (activeView === 'deposit') {
+    return (
+      <DepositScreen
+        onBack={() => setActiveView('home')}
+        handleKeyPress={handleKeyPress}
+      />
+    );
+  }
+
+  if (activeView === 'history') {
+    return (
+      <HistoryScreen
+        onBack={() => setActiveView('home')}
+        handleKeyPress={handleKeyPress}
+      />
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -266,13 +316,13 @@ export default function HomeScreen({
                 </View>
                 <Text style={styles.actionLabel}>{'Transfer'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.actionBtn} onPress={handleDeposit} activeOpacity={0.7}>
                 <View style={styles.actionIconBox}>
                   <Text style={styles.actionIconText}>{'↓'}</Text>
                 </View>
                 <Text style={styles.actionLabel}>{'Deposit'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.actionBtn} onPress={handleHistory} activeOpacity={0.7}>
                 <View style={styles.actionIconBox}>
                   <Text style={styles.actionIconText}>{'☰'}</Text>
                 </View>
@@ -311,7 +361,9 @@ export default function HomeScreen({
           {/* Transactions */}
           <View style={styles.txHeader}>
             <Text style={styles.sectionTitle}>{'Recent Transactions'}</Text>
-            <Text style={styles.seeAll}>{'See all'}</Text>
+            <TouchableOpacity onPress={handleHistory} activeOpacity={0.7}>
+              <Text style={styles.seeAll}>{'See all'}</Text>
+            </TouchableOpacity>
           </View>
 
           {transactions.map((tx, index) => (

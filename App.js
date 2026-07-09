@@ -304,6 +304,55 @@ export default function App() {
     alert('Reset done! Start fresh.');
   };
 
+  // ─── MID-SESSION ANOMALY CHECK (Option A: challenge on sensitive actions) ───
+  const handleMidSessionCheck = async (transferDetails) => {
+    const report = getAnomalyReport();
+
+    const backendOnline = await checkBackendHealth();
+    setIsOffline(!backendOnline);
+
+    let result = null;
+    if (backendOnline) {
+      result = await getMLScore(report, currentUserId);
+      console.log('Mid-session ML check — score:', result?.score);
+    }
+    if (!result) {
+      result = await getAnomalyScore(report, accessibilityMode);
+      console.log('Mid-session statistical check — score:', result?.score);
+    }
+    if (!result) {
+      result = { score: 0, isAnomaly: false, learning: false, duress: false };
+    }
+
+    result.duress = result.duress || report.duress_flag;
+
+    // Log behavior in background
+    logBehavior(report, result, currentUserId).catch(e => console.log('Log error:', e));
+
+    // Duress alert if flagged
+    if (result.duress || report.duress_flag) {
+      sendDuressAlert(
+        parseFloat(report.accelerometer_avg_variance),
+        transferDetails?.amount || 0,
+        transferDetails?.beneficiary || 'unknown',
+        currentUserId
+      ).catch(e => console.log('Duress alert error:', e));
+      console.log('MID-SESSION DURESS FLAG SENT');
+    }
+
+    const isAnomaly = result.isAnomaly || result.duress;
+    console.log('Mid-session anomaly result:', isAnomaly, '| score:', result.score);
+
+    if (isAnomaly) {
+      setAnomalyReason('Behavioral verification required for this transaction');
+      setShowOTP(true);
+      setShowHome(false);
+      return false; // blocked
+    }
+
+    return true; // allowed
+  };
+
   if (showOTP) {
     return (
       <OTPScreen
@@ -323,6 +372,8 @@ export default function App() {
         onToggleAccessibility={() => setAccessibilityMode(prev => !prev)}
         onLogout={() => setShowHome(false)}
         currentUserId={currentUserId}
+        handleKeyPress={handleKeyPress}
+        onMidSessionCheck={handleMidSessionCheck}
         onDuress={async (variance) => {
           await sendDuressAlert(variance, 0, 'unknown', currentUserId);
         }}
