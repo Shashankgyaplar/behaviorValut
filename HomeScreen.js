@@ -38,6 +38,7 @@ export default function HomeScreen({
   onDuress,
   onAnomaly,
   lastScore,
+  isOffline,
   accessibilityMode,
   onToggleAccessibility,
   currentUserId = 'anonymous'
@@ -212,6 +213,18 @@ export default function HomeScreen({
               </View>
               <Text style={styles.duressAlertSub}>
                 {`Threat score: ${(duressScore * 100).toFixed(0)}% — Fraud team notified. Transaction held in escrow.`}
+              </Text>
+            </View>
+          )}
+
+          {/* Offline Mode Banner */}
+          {isOffline && (
+            <View style={styles.offlineBanner}>
+              <Text style={styles.offlineText}>
+                {'Offline Mode \u2014 On-Device Protection Active'}
+              </Text>
+              <Text style={styles.offlineSub}>
+                {'Behavioral analysis running locally on your device'}
               </Text>
             </View>
           )}
@@ -676,4 +689,22 @@ const styles = StyleSheet.create({
   },
   txAmountCredit: { color: '#10B981' },
   txAmountDebit: { color: '#EF4444' },
+  offlineBanner: {
+    backgroundColor: '#1A1A00',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#FFB020',
+  },
+  offlineText: {
+    color: '#FFB020',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginBottom: 3,
+  },
+  offlineSub: {
+    color: '#665500',
+    fontSize: 11,
+  },
 });

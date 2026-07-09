@@ -260,3 +260,15 @@ export const getMLScore = async (report, userId = 'anonymous') => {
     return null;
   }
 };
+
+// ─── BACKEND HEALTH CHECK ─────────────────────────────────
+export const checkBackendHealth = async () => {
+  try {
+    const response = await fetchWithTimeout(`${BASE_URL}/`, {
+      method: 'GET',
+    }, 3000);
+    return response.ok;
+  } catch (err) {
+    return false;
+  }
+};

@@ -17,7 +17,8 @@ import {
 } from './AnomalyDetector';
 import OTPScreen from './OTPScreen';
 import HomeScreen from './HomeScreen';
-import { logBehavior, sendDuressAlert, getMLScore } from './api';
+import * as Updates from 'expo-updates';
+import { logBehavior, sendDuressAlert, getMLScore, checkBackendHealth } from './api';
 
 export default function App() {
   const [username, setUsername] = useState('');
@@ -36,6 +37,7 @@ export default function App() {
   const accelSub = useRef(null);
   const [accessibilityMode, setAccessibilityMode] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
 
   // Anti-paste: track previous input length to detect bulk text insertion
   const prevUsernameLen = useRef(0);
@@ -88,6 +90,22 @@ export default function App() {
     getAnomalyReport,
     resetSession,
   } = useBehaviorTracker();
+
+  // ─── Auto-update checking ───
+  useEffect(() => {
+    const checkUpdate = async () => {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          await Updates.reloadAsync();
+        }
+      } catch (e) {
+        console.log('Error checking/applying updates:', e);
+      }
+    };
+    checkUpdate();
+  }, []);
 
   // ─── Accelerometer lifecycle — stop when navigating away, restart on return ───
   useEffect(() => {
@@ -201,43 +219,34 @@ export default function App() {
       return;
     }
 
-    // ─── DUAL-MODEL ANOMALY DETECTION ─────────────────────
-    // Run both detectors in parallel for speed
-    const [statResult, mlResult] = await Promise.all([
-      getAnomalyScore(report, accessibilityMode),
-      getMLScore(report, loginUserId),
-    ]);
+    // ─── CHECK BACKEND HEALTH ─────────────────────────────
+    const backendOnline = await checkBackendHealth();
+    setIsOffline(!backendOnline);
 
-    console.log('Statistical Z-score detector — score:', statResult?.score, '| isAnomaly:', statResult?.isAnomaly);
-    console.log('TFLite ML detector — score:', mlResult?.score, '→', mlResult?.level);
+    // try TFLite ML model first (only if online)
+    let result = null;
 
-    // ─── Merge Strategy: Statistical is PRIMARY (personalized), ML is ADVISORY ───
-    // The statistical detector is trained on YOUR personal baseline.
-    // The ML model is a generic global model — it doesn't know your unique rhythm.
-    // So: trust statistical first. ML only matters if statistical is still learning.
-    let result;
-    if (statResult && !statResult.learning) {
-      // Statistical baseline exists → use it as primary authority
-      result = { ...statResult };
-      // ML can only UPGRADE a normal result to anomaly if ML is very confident (score > 0.85)
-      if (!result.isAnomaly && mlResult && mlResult.score > 0.85 && mlResult.isAnomaly) {
-        console.log('ML override: very high confidence anomaly detected');
-        result.isAnomaly = true;
-        result.score = Math.max(result.score, mlResult.score);
-      }
-      console.log('Using Statistical (primary) — score:', result.score);
-    } else if (mlResult) {
-      // Statistical still learning → use ML as fallback
-      result = {
-        score: mlResult.score,
-        isAnomaly: mlResult.isAnomaly,
-        learning: false,
-        duress: mlResult.duress || report.duress_flag,
-        details: {},
-      };
-      console.log('Statistical learning — using ML fallback — score:', result.score);
+    if (backendOnline) {
+      result = await getMLScore(report, loginUserId);
+      console.log('Online mode — TFLite score:', result?.score);
     } else {
-      result = { score: 0, isAnomaly: false, learning: false, duress: false, details: {} };
+      console.log('Offline mode — using on-device detector only');
+    }
+
+    // fallback to statistical detector
+    if (!result) {
+      result = await getAnomalyScore(report, accessibilityMode);
+      console.log('Statistical detector — score:', result?.score);
+    }
+
+    // null guard
+    if (!result) {
+      result = {
+        score: 0,
+        isAnomaly: false,
+        learning: false,
+        duress: false,
+      };
     }
 
     result.duress = result.duress || report.duress_flag;
@@ -309,6 +318,7 @@ export default function App() {
     return (
       <HomeScreen
         lastScore={lastScore}
+        isOffline={isOffline}
         accessibilityMode={accessibilityMode}
         onToggleAccessibility={() => setAccessibilityMode(prev => !prev)}
         onLogout={() => setShowHome(false)}
@@ -380,6 +390,15 @@ export default function App() {
                 { color: isActive ? '#10B981' : '#F59E0B' }
               ]}>{learningStatus}</Text>
             </View>
+
+            {/* Offline Mode Banner */}
+            {isOffline && (
+              <View style={styles.offlineBanner}>
+                <Text style={styles.offlineText}>
+                  {'Offline Mode — On-Device Protection Active'}
+                </Text>
+              </View>
+            )}
 
             {/* Login Card */}
             <View style={styles.card} {...swipePanResponder.panHandlers}>
@@ -738,5 +757,20 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 6,
     opacity: 0.7,
+  },
+  offlineBanner: {
+    backgroundColor: '#1A1A00',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#FFB020',
+    width: '100%',
+    alignItems: 'center',
+  },
+  offlineText: {
+    color: '#FFB020',
+    fontSize: 12,
+    fontWeight: '500',
   },
 });
