@@ -10,8 +10,8 @@ router.post('/generate', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Missing userId' });
     }
 
-    // Generate random 6-digit number
-    const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate random 4-digit number
+    const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
 
     // Clean up any existing OTPs for this user first
     await Otp.deleteMany({ userId });

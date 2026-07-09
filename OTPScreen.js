@@ -195,7 +195,6 @@ export default function OTPScreen({ reason, userId, onVerified, onFailed }) {
                 </Animated.View>
               </View>
 
-              <Text style={styles.demoHint}>{'Demo OTP: 1234'}</Text>
 
               <Text style={styles.label}>
                 {'Enter OTP sent to your registered mobile'}
