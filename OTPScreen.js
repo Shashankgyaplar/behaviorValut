@@ -4,18 +4,20 @@ import {
   TouchableOpacity, TextInput,
   KeyboardAvoidingView, ScrollView,
   Platform, SafeAreaView, Animated,
+  ActivityIndicator,
 } from 'react-native';
+import { verifyOTP } from './api';
 
-export default function OTPScreen({ reason, onVerified, onFailed }) {
+export default function OTPScreen({ reason, userId, onVerified, onFailed }) {
   const [otp, setOtp] = useState('');
   const [timeLeft, setTimeLeft] = useState(30);
   const [attempts, setAttempts] = useState(0);
   const [status, setStatus] = useState('pending');
+  const [isVerifying, setIsVerifying] = useState(false);
   const timerRef = useRef(null);
   const navTimeoutRef = useRef(null);
   const isMounted = useRef(true);
 
-  const DEMO_OTP = '1234';
   const MAX_ATTEMPTS = 3;
 
   // Animations
@@ -60,8 +62,16 @@ export default function OTPScreen({ reason, onVerified, onFailed }) {
     };
   }, []);
 
-  const handleVerify = () => {
-    if (otp === DEMO_OTP) {
+  const handleVerify = async () => {
+    if (isVerifying || otp.length < 4) return;
+    setIsVerifying(true);
+
+    const isMatch = await verifyOTP(userId, otp);
+
+    if (!isMounted.current) return;
+    setIsVerifying(false);
+
+    if (isMatch) {
       clearInterval(timerRef.current);
       setStatus('success');
 
@@ -216,13 +226,19 @@ export default function OTPScreen({ reason, onVerified, onFailed }) {
               )}
 
               <TouchableOpacity
-                style={[styles.button, otp.length < 4 && styles.buttonDisabled]}
+                style={[styles.button, (otp.length < 4 || isVerifying) && styles.buttonDisabled]}
                 onPress={handleVerify}
-                disabled={otp.length < 4}
+                disabled={otp.length < 4 || isVerifying}
                 activeOpacity={0.8}
               >
-                <Text style={styles.buttonText}>{'Verify Identity'}</Text>
-                <Text style={styles.buttonArrow}>{'→'}</Text>
+                {isVerifying ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <>
+                    <Text style={styles.buttonText}>{'Verify Identity'}</Text>
+                    <Text style={styles.buttonArrow}>{'→'}</Text>
+                  </>
+                )}
               </TouchableOpacity>
 
               <View style={styles.detailsBox}>

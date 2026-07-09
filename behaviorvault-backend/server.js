@@ -8,6 +8,7 @@ const behaviorRoutes = require('./routes/behavior');
 const duressRoutes = require('./routes/duress');
 const consentRoutes = require('./routes/consent');
 const mlRouter = require('./routes/ml');
+const otpRoutes = require('./routes/otp');
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use('/api/behavior', behaviorRoutes);
 app.use('/api/duress', duressRoutes);
 app.use('/api/consent', consentRoutes);
 app.use('/api/ml', mlRouter);
+app.use('/api/otp', otpRoutes);
 
 // health check
 app.get('/', (req, res) => {

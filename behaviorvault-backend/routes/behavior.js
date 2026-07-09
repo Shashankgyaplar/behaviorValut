@@ -6,14 +6,15 @@ const Nonce = require('../models/Nonce');
 
 const TELEMETRY_SECRET = process.env.TELEMETRY_SECRET || 'bv_secret_key_2026';
 
-// GET /api/behavior/nonce — Generate single-use cryptographic nonce
+// GET /api/behavior/nonce — Generate single-use cryptographic nonce and temporary session signing key
 router.get('/nonce', async (req, res) => {
   try {
     const rawNonce = crypto.randomBytes(16).toString('hex');
-    const nonceObj = new Nonce({ nonce: rawNonce });
+    const rawSessionKey = crypto.randomBytes(32).toString('hex');
+    const nonceObj = new Nonce({ nonce: rawNonce, sessionKey: rawSessionKey });
     await nonceObj.save();
     
-    res.json({ success: true, nonce: rawNonce });
+    res.json({ success: true, nonce: rawNonce, sessionKey: rawSessionKey });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -36,7 +37,7 @@ router.post('/log', async (req, res) => {
       signature
     } = req.body;
 
-    // ─── REPLAY ATTACK PROTECTION: Validate and burn nonce ───
+    // ─── REPLAY ATTACK & INTEGRITY PROTECTION: Validate and retrieve session key ───
     if (!nonce) {
       return res.status(400).json({ success: false, error: 'Missing security nonce' });
     }
@@ -46,7 +47,6 @@ router.post('/log', async (req, res) => {
       return res.status(403).json({ success: false, error: 'Invalid or expired nonce (Possible Replay Attack)' });
     }
 
-    // ─── INTEGRITY PROTECTION: Verify HMAC signature ───
     if (!signature) {
       return res.status(400).json({ success: false, error: 'Missing cryptographic signature' });
     }
@@ -58,7 +58,7 @@ router.post('/log', async (req, res) => {
 
     const dataToSign = `${userId || 'demo_user'}:${sanitize(keystroke_avg_ms)}:${sanitize(swipe_avg_px_per_sec)}:${sanitize(touch_avg_duration_ms)}:${sanitize(accelerometer_avg_variance)}:${nonce}`;
     const expectedSignature = crypto
-      .createHmac('sha256', TELEMETRY_SECRET)
+      .createHmac('sha256', validNonce.sessionKey)
       .update(dataToSign)
       .digest('hex');
 

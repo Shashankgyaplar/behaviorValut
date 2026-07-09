@@ -44,8 +44,9 @@ export const useBehaviorTracker = () => {
       onPanResponderRelease: (event) => {
         if (touchStartTime.current) {
           const duration = Date.now() - touchStartTime.current;
-          setTouchPressure(prev => [...prev, { duration, pressure: 0.5 }]);
-          console.log('Touch ended — duration:', duration, 'ms');
+          const force = event.nativeEvent.force || event.nativeEvent.pressure || 0.5;
+          setTouchPressure(prev => [...prev, { duration, pressure: force }]);
+          console.log('Touch ended — duration:', duration, 'ms | pressure:', force);
         }
         if (swipeStartY.current !== null) {
           const endY = event.nativeEvent.pageY;
@@ -118,6 +119,9 @@ export const useBehaviorTracker = () => {
     const avgTouchDuration = touchPressure.length > 0
       ? Math.round(touchPressure.reduce((a, b) => a + b.duration, 0) / touchPressure.length)
       : null;
+    const avgTouchPressure = touchPressure.length > 0
+      ? parseFloat((touchPressure.reduce((a, b) => a + b.pressure, 0) / touchPressure.length).toFixed(3))
+      : 0.5;
 
     // Bot detection
     const syntheticBot = detectSyntheticInput(keyTimings);
@@ -126,6 +130,7 @@ export const useBehaviorTracker = () => {
       keystroke_avg_ms: avgKeystroke,
       swipe_avg_px_per_sec: avgSwipe,
       touch_avg_duration_ms: avgTouchDuration,
+      touch_pressure_avg: avgTouchPressure,
       accelerometer_avg_variance: avgAccel,
       total_keystrokes: keyTimings.length,
       total_swipes: swipeEvents.length,

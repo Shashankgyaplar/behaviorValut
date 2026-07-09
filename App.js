@@ -18,7 +18,7 @@ import {
 import OTPScreen from './OTPScreen';
 import HomeScreen from './HomeScreen';
 import * as Updates from 'expo-updates';
-import { logBehavior, sendDuressAlert, getMLScore, checkBackendHealth } from './api';
+import { logBehavior, sendDuressAlert, getMLScore, checkBackendHealth, generateOTP } from './api';
 
 export default function App() {
   const [username, setUsername] = useState('');
@@ -304,6 +304,13 @@ export default function App() {
     alert('Reset done! Start fresh.');
   };
 
+  useEffect(() => {
+    if (showOTP) {
+      const activeUser = currentUserId || username || 'demo_user';
+      generateOTP(activeUser).catch(e => console.log('Error triggering OTP:', e));
+    }
+  }, [showOTP]);
+
   // ─── MID-SESSION ANOMALY CHECK (Option A: challenge on sensitive actions) ───
   const handleMidSessionCheck = async (transferDetails) => {
     const report = getAnomalyReport();
@@ -357,6 +364,7 @@ export default function App() {
     return (
       <OTPScreen
         reason={anomalyReason}
+        userId={currentUserId || username || 'demo_user'}
         onVerified={handleOTPVerified}
         onFailed={handleOTPFailed}
       />

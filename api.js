@@ -157,10 +157,9 @@ export const logBehavior = async (report, anomalyResult, userId = 'anonymous') =
       return val;
     };
 
-    // 2. Generate signature of data parameters + nonce using the telemetry secret key
+    // 2. Generate signature of data parameters + nonce using the temporary sessionKey returned from backend
     const dataToSign = `${uId}:${sanitize(keystroke)}:${sanitize(swipe)}:${sanitize(touch)}:${sanitize(accel)}:${nonce}`;
-    const TELEMETRY_SECRET = 'bv_secret_key_2026';
-    const signature = hmacSHA256(dataToSign, TELEMETRY_SECRET);
+    const signature = hmacSHA256(dataToSign, nonceData.sessionKey);
 
     // 3. Post telemetry data with nonce and signature validation
     const response = await fetchWithTimeout(`${BASE_URL}/api/behavior/log`, {
@@ -269,6 +268,37 @@ export const checkBackendHealth = async () => {
     }, 3000);
     return response.ok;
   } catch (err) {
+    return false;
+  }
+};
+
+// ─── OTP SECURITY (dynamic backend-driven verification) ───
+export const generateOTP = async (userId) => {
+  try {
+    const response = await fetchWithTimeout(`${BASE_URL}/api/otp/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
+    const data = await response.json();
+    return data.success;
+  } catch (err) {
+    console.log('Generate OTP error:', err.message);
+    return false;
+  }
+};
+
+export const verifyOTP = async (userId, code) => {
+  try {
+    const response = await fetchWithTimeout(`${BASE_URL}/api/otp/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, code }),
+    });
+    const data = await response.json();
+    return data.success;
+  } catch (err) {
+    console.log('Verify OTP error:', err.message);
     return false;
   }
 };
