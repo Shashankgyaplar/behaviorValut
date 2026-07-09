@@ -13,6 +13,7 @@ export default function TransferScreen({ onBack, onSendMoney, handleKeyPress, co
   const [isNewBeneficiary, setIsNewBeneficiary] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [txnId, setTxnId] = useState('');
 
   // Animations
   const fadeIn = useRef(new Animated.Value(0)).current;
@@ -39,6 +40,7 @@ export default function TransferScreen({ onBack, onSendMoney, handleKeyPress, co
   }, [completedTransfer]);
 
   const playSuccessAnimation = () => {
+    setTxnId('TXN-' + Math.random().toString(36).substring(2, 8).toUpperCase());
     setShowSuccess(true);
     Animated.parallel([
       Animated.spring(successScale, { toValue: 1, friction: 4, useNativeDriver: true }),
@@ -83,7 +85,7 @@ export default function TransferScreen({ onBack, onSendMoney, handleKeyPress, co
             <Text style={styles.successAmount}>{`₹ ${parseFloat(amount).toLocaleString('en-IN')}`}</Text>
             <Text style={styles.successTo}>{`to ${beneficiary}`}</Text>
             <View style={styles.successDivider} />
-            <Text style={styles.successTxId}>{`TXN-${Date.now().toString(36).toUpperCase()}`}</Text>
+            <Text style={styles.successTxId}>{txnId}</Text>
             <Text style={styles.successNote}>{'Behavioral identity verified'}</Text>
           </Animated.View>
         </View>
