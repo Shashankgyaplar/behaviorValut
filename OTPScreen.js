@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { verifyOTP } from './api';
+import { useBehaviorTracker } from './BehaviorTracker';
 
 export default function OTPScreen({ reason, userId, onVerified, onFailed }) {
   const [otp, setOtp] = useState('');
@@ -14,6 +15,9 @@ export default function OTPScreen({ reason, userId, onVerified, onFailed }) {
   const [attempts, setAttempts] = useState(0);
   const [status, setStatus] = useState('pending');
   const [isVerifying, setIsVerifying] = useState(false);
+  
+  const { handleKeyPress, getAnomalyReport, swipePanResponder, startAccelerometer } = useBehaviorTracker();
+  
   const timerRef = useRef(null);
   const navTimeoutRef = useRef(null);
   const isMounted = useRef(true);
@@ -41,6 +45,9 @@ export default function OTPScreen({ reason, userId, onVerified, onFailed }) {
       });
     }, 1000);
 
+    // Start accelerometer tracker for the OTP screen
+    const accelSub = startAccelerometer();
+
     // Entrance animation
     Animated.parallel([
       Animated.timing(fadeIn, { toValue: 1, duration: 600, useNativeDriver: true }),
@@ -57,6 +64,7 @@ export default function OTPScreen({ reason, userId, onVerified, onFailed }) {
 
     return () => {
       isMounted.current = false;
+      accelSub?.remove();
       clearInterval(timerRef.current);
       clearTimeout(navTimeoutRef.current);
     };
@@ -66,12 +74,13 @@ export default function OTPScreen({ reason, userId, onVerified, onFailed }) {
     if (isVerifying || otp.length < 4) return;
     setIsVerifying(true);
 
-    const isMatch = await verifyOTP(userId, otp);
+    const report = getAnomalyReport();
+    const result = await verifyOTP(userId, otp, report);
 
     if (!isMounted.current) return;
     setIsVerifying(false);
 
-    if (isMatch) {
+    if (result.success) {
       clearInterval(timerRef.current);
       setStatus('success');
 
@@ -84,6 +93,12 @@ export default function OTPScreen({ reason, userId, onVerified, onFailed }) {
       navTimeoutRef.current = setTimeout(() => {
         if (isMounted.current) onVerified();
       }, 1500);
+    } else if (result.locked) {
+      clearInterval(timerRef.current);
+      setStatus('locked');
+      navTimeoutRef.current = setTimeout(() => {
+        if (isMounted.current) onFailed(true); // pass true indicating security lockout
+      }, 3500);
     } else {
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
@@ -92,7 +107,7 @@ export default function OTPScreen({ reason, userId, onVerified, onFailed }) {
         clearInterval(timerRef.current);
         setStatus('failed');
         navTimeoutRef.current = setTimeout(() => {
-          if (isMounted.current) onFailed();
+          if (isMounted.current) onFailed(false);
         }, 1500);
       }
     }
@@ -135,6 +150,23 @@ export default function OTPScreen({ reason, userId, onVerified, onFailed }) {
     );
   }
 
+  // ─── LOCKED (BEHAVIORAL MISMATCH) ─────────────────────────
+  if (status === 'locked') {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.centerBox}>
+          <View style={[styles.failedCircle, { borderColor: '#EF4444', backgroundColor: 'rgba(239, 68, 68, 0.15)' }]}>
+            <Text style={[styles.failedIcon, { color: '#EF4444' }]}>{'🔒'}</Text>
+          </View>
+          <Text style={[styles.failedText, { color: '#FF4B4B' }]}>{'ACCOUNT LOCKED'}</Text>
+          <Text style={[styles.failedSub, { color: '#EF4444', textAlign: 'center', marginHorizontal: 20 }]}>
+            {'Identity mismatch detected during OTP verification. Access has been locked for your security.'}
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   // ─── OTP INPUT ────────────────────────────────────────────
   const isUrgent = timeLeft <= 10;
 
@@ -149,6 +181,7 @@ export default function OTPScreen({ reason, userId, onVerified, onFailed }) {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          {...swipePanResponder.panHandlers}
         >
           <Animated.View style={{
             opacity: fadeIn,
@@ -208,6 +241,7 @@ export default function OTPScreen({ reason, userId, onVerified, onFailed }) {
                   ]}
                   value={otp}
                   onChangeText={setOtp}
+                  onKeyPress={handleKeyPress}
                   keyboardType="number-pad"
                   maxLength={4}
                   placeholder="• • • •"

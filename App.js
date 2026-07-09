@@ -38,6 +38,8 @@ export default function App() {
   const [accessibilityMode, setAccessibilityMode] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
+  const [pendingTransfer, setPendingTransfer] = useState(null);
+  const [completedTransfer, setCompletedTransfer] = useState(null);
 
   // Anti-paste: track previous input length to detect bulk text insertion
   const prevUsernameLen = useRef(0);
@@ -286,12 +288,25 @@ export default function App() {
 
   const handleOTPVerified = () => {
     setShowOTP(false);
+    if (pendingTransfer) {
+      setCompletedTransfer(pendingTransfer);
+      setPendingTransfer(null);
+    }
     setShowHome(true);
   };
 
-  const handleOTPFailed = () => {
+  const handleOTPFailed = (isLocked = false) => {
     setShowOTP(false);
-    alert('Session terminated. Please contact support.');
+    setPendingTransfer(null);
+    setCompletedTransfer(null);
+    setShowHome(false);
+    setUsername('');
+    setPassword('');
+    if (isLocked) {
+      Alert.alert('Security Compromise', 'Account locked due to biometric signature mismatch. Please contact your administrator.');
+    } else {
+      Alert.alert('Session Terminated', 'Verification failed. Please log in again.');
+    }
   };
 
   const handleReset = async () => {
@@ -359,6 +374,7 @@ export default function App() {
     console.log('Mid-session anomaly result:', isAnomaly, '| score:', result.score);
 
     if (isAnomaly) {
+      setPendingTransfer(transferDetails);
       setAnomalyReason('Behavioral verification required for this transaction');
       setShowOTP(true);
       setShowHome(false);
@@ -386,10 +402,16 @@ export default function App() {
         isOffline={isOffline}
         accessibilityMode={accessibilityMode}
         onToggleAccessibility={() => setAccessibilityMode(prev => !prev)}
-        onLogout={() => setShowHome(false)}
+        onLogout={() => {
+          setCompletedTransfer(null);
+          setPendingTransfer(null);
+          setShowHome(false);
+        }}
         currentUserId={currentUserId}
         handleKeyPress={handleKeyPress}
         onMidSessionCheck={handleMidSessionCheck}
+        completedTransfer={completedTransfer}
+        onClearCompletedTransfer={() => setCompletedTransfer(null)}
         onDuress={async (variance) => {
           await sendDuressAlert(variance, 0, 'unknown', currentUserId);
         }}

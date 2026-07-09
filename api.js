@@ -288,17 +288,17 @@ export const generateOTP = async (userId) => {
   }
 };
 
-export const verifyOTP = async (userId, code) => {
+export const verifyOTP = async (userId, code, behaviorReport) => {
   try {
     const response = await fetchWithTimeout(`${BASE_URL}/api/otp/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, code }),
+      body: JSON.stringify({ userId, code, behaviorReport }),
     });
     const data = await response.json();
-    return data.success;
+    return data;
   } catch (err) {
     console.log('Verify OTP error:', err.message);
-    return false;
+    return { success: false, error: err.message };
   }
 };

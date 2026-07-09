@@ -47,8 +47,16 @@ export default function HomeScreen({
   currentUserId = 'anonymous',
   handleKeyPress,
   onMidSessionCheck,
+  completedTransfer,
+  onClearCompletedTransfer,
 }) {
   const [activeView, setActiveView] = useState('home');
+
+  useEffect(() => {
+    if (completedTransfer) {
+      setActiveView('transfer');
+    }
+  }, [completedTransfer]);
   const [accelVariance, setAccelVariance] = useState(0);
   const [duressWarning, setDuressWarning] = useState(false);
   const [duressScore, setDuressScore] = useState(0);
@@ -168,9 +176,13 @@ export default function HomeScreen({
   if (activeView === 'transfer') {
     return (
       <TransferScreen
-        onBack={() => setActiveView('home')}
+        onBack={() => {
+          setActiveView('home');
+          onClearCompletedTransfer && onClearCompletedTransfer();
+        }}
         onSendMoney={handleSendMoney}
         handleKeyPress={handleKeyPress}
+        completedTransfer={completedTransfer}
       />
     );
   }

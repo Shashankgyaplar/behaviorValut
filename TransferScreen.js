@@ -7,7 +7,7 @@ import {
   KeyboardAvoidingView, Platform,
 } from 'react-native';
 
-export default function TransferScreen({ onBack, onSendMoney, handleKeyPress }) {
+export default function TransferScreen({ onBack, onSendMoney, handleKeyPress, completedTransfer }) {
   const [beneficiary, setBeneficiary] = useState('');
   const [amount, setAmount] = useState('');
   const [isNewBeneficiary, setIsNewBeneficiary] = useState(false);
@@ -21,11 +21,22 @@ export default function TransferScreen({ onBack, onSendMoney, handleKeyPress }) 
   const successOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeIn, { toValue: 1, duration: 500, useNativeDriver: true }),
-      Animated.timing(slideUp, { toValue: 0, duration: 500, useNativeDriver: true }),
-    ]).start();
-  }, []);
+    if (completedTransfer) {
+      setBeneficiary(completedTransfer.beneficiary);
+      setAmount(String(completedTransfer.amount));
+      setIsNewBeneficiary(completedTransfer.isNewBeneficiary);
+      playSuccessAnimation();
+      const timer = setTimeout(() => {
+        onBack();
+      }, 3000);
+      return () => clearTimeout(timer);
+    } else {
+      Animated.parallel([
+        Animated.timing(fadeIn, { toValue: 1, duration: 500, useNativeDriver: true }),
+        Animated.timing(slideUp, { toValue: 0, duration: 500, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [completedTransfer]);
 
   const playSuccessAnimation = () => {
     setShowSuccess(true);
