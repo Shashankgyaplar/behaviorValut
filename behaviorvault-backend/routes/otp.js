@@ -54,7 +54,23 @@ router.post('/verify', async (req, res) => {
     }
 
     if (foundRecord.otp !== String(code).trim()) {
-      return res.status(400).json({ success: false, error: 'Invalid OTP code' });
+      foundRecord.attempts += 1;
+      await foundRecord.save();
+
+      if (foundRecord.attempts >= 3) {
+        await Otp.deleteOne({ _id: foundRecord._id });
+        return res.status(403).json({
+          success: false,
+          locked: true,
+          error: 'Too many failed attempts. Access locked.'
+        });
+      }
+
+      return res.status(400).json({
+        success: false,
+        attemptsRemaining: 3 - foundRecord.attempts,
+        error: 'Invalid OTP code'
+      });
     }
 
     // ─── BEHAVIORAL MULTI-FACTOR VALIDATION ──────────────────

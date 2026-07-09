@@ -100,10 +100,11 @@ export default function OTPScreen({ reason, userId, onVerified, onFailed }) {
         if (isMounted.current) onFailed(true); // pass true indicating security lockout
       }, 3500);
     } else {
-      const newAttempts = attempts + 1;
-      setAttempts(newAttempts);
+      const remaining = result.attemptsRemaining !== undefined ? result.attemptsRemaining : 3 - (attempts + 1);
+      const calculatedAttempts = 3 - remaining;
+      setAttempts(calculatedAttempts);
       setOtp('');
-      if (newAttempts >= MAX_ATTEMPTS) {
+      if (remaining <= 0) {
         clearInterval(timerRef.current);
         setStatus('failed');
         navTimeoutRef.current = setTimeout(() => {
