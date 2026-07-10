@@ -329,10 +329,33 @@ export default function App() {
             `Your BehaviorVault verification code is: ${otp}`,
             [{ text: "OK" }]
           );
+        } else {
+          Alert.alert(
+            "Connection Latency",
+            "Failed to retrieve the verification code. The server might be waking up from sleep. Please wait a few seconds and tap 'Resend Code' on the screen.",
+            [{ text: "OK" }]
+          );
         }
-      }).catch(e => console.log('Error triggering OTP:', e));
+      }).catch(e => {
+        console.log('Error triggering OTP:', e);
+        Alert.alert("Error", "An unexpected error occurred while generating the security code.");
+      });
     }
   }, [showOTP]);
+
+  const handleResendOTP = async () => {
+    const activeUser = currentUserId || username || 'demo_user';
+    const otp = await generateOTP(activeUser);
+    if (otp) {
+      Alert.alert(
+        "Simulated SMS Notification",
+        `Your new verification code is: ${otp}`,
+        [{ text: "OK" }]
+      );
+      return true;
+    }
+    return false;
+  };
 
   // ─── MID-SESSION ANOMALY CHECK (Option A: challenge on sensitive actions) ───
   const handleMidSessionCheck = async (transferDetails) => {
@@ -391,6 +414,7 @@ export default function App() {
         userId={currentUserId || username || 'demo_user'}
         onVerified={handleOTPVerified}
         onFailed={handleOTPFailed}
+        onResend={handleResendOTP}
       />
     );
   }

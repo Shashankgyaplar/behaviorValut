@@ -9,12 +9,13 @@ import {
 import { verifyOTP } from './api';
 import { useBehaviorTracker } from './BehaviorTracker';
 
-export default function OTPScreen({ reason, userId, onVerified, onFailed }) {
+export default function OTPScreen({ reason, userId, onVerified, onFailed, onResend }) {
   const [otp, setOtp] = useState('');
   const [timeLeft, setTimeLeft] = useState(30);
   const [attempts, setAttempts] = useState(0);
   const [status, setStatus] = useState('pending');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   
   const { handleKeyPress, getAnomalyReport, swipePanResponder, startAccelerometer } = useBehaviorTracker();
   
@@ -69,6 +70,33 @@ export default function OTPScreen({ reason, userId, onVerified, onFailed }) {
       clearTimeout(navTimeoutRef.current);
     };
   }, []);
+
+  const handleResend = async () => {
+    if (isResending || !onResend) return;
+    setIsResending(true);
+    const success = await onResend();
+    if (!isMounted.current) return;
+    setIsResending(false);
+
+    if (success) {
+      setTimeLeft(30);
+      setStatus('pending');
+      setAttempts(0);
+      setOtp('');
+
+      clearInterval(timerRef.current);
+      timerRef.current = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current);
+            if (isMounted.current) setStatus('failed');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+  };
 
   const handleVerify = async () => {
     if (isVerifying || otp.length < 4) return;
@@ -272,6 +300,19 @@ export default function OTPScreen({ reason, userId, onVerified, onFailed }) {
                     <Text style={styles.buttonText}>{'Verify Identity'}</Text>
                     <Text style={styles.buttonArrow}>{'→'}</Text>
                   </>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.resendBtn, isResending && styles.resendBtnDisabled]}
+                onPress={handleResend}
+                disabled={isResending}
+                activeOpacity={0.7}
+              >
+                {isResending ? (
+                  <ActivityIndicator color="#6366F1" size="small" />
+                ) : (
+                  <Text style={styles.resendText}>{'Resend Verification Code'}</Text>
                 )}
               </TouchableOpacity>
 
@@ -566,5 +607,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#EF4444',
     textAlign: 'center',
+  },
+  resendBtn: {
+    alignSelf: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginTop: 8,
+  },
+  resendBtnDisabled: {
+    opacity: 0.5,
+  },
+  resendText: {
+    color: '#6366F1',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
 });
