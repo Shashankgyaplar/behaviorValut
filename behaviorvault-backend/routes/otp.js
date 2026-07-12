@@ -114,12 +114,11 @@ router.post('/verify', async (req, res) => {
             if (keystrokeVals.length >= 3 && behaviorReport.keystroke_avg_ms) {
               const avg = keystrokeVals.reduce((a, b) => a + b, 0) / keystrokeVals.length;
               const variance = keystrokeVals.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / keystrokeVals.length;
-              const stdDev = Math.max(Math.sqrt(variance), 25); // 25ms floor
-
+              const stdDev = Math.max(Math.sqrt(variance), 100); // 100ms floor to prevent false triggers
               const zScore = Math.abs(behaviorReport.keystroke_avg_ms - avg) / stdDev;
               console.log(`[OTP SECURITY] Server-side keystroke Z-score for OTP input: ${zScore.toFixed(2)}`);
 
-              if (zScore > 2.5) { // 2.5 Z-score threshold for server-side OTP lockdown
+              if (zScore > 3.0) { // 3.0 Z-score threshold for server-side OTP lockdown
                 isAnomaly = true;
                 console.log(`[OTP SECURITY] Z-score flagged OTP typing as anomalous. Z: ${zScore.toFixed(2)}`);
               }
