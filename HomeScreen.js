@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
-    marginTop: Platform.OS === 'ios' ? 10 : 15,
+    marginTop: Platform.OS === 'ios' ? 10 : 0,
   },
   greeting: {
     fontSize: 13,

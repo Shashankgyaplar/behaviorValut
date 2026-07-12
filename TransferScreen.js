@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 24,
-    marginTop: 10,
+    marginTop: Platform.OS === 'ios' ? 10 : 0,
   },
   backBtn: { paddingVertical: 6, paddingRight: 12 },
   backText: { color: '#6366F1', fontSize: 15, fontWeight: '600' },
