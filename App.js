@@ -221,7 +221,7 @@ export default function App() {
       setLearningStatus('BehaviorEngine Active');
       logBehavior(report, null, loginUserId); // fire and forget
       setIsLoggingIn(false);
-      alert('Baseline learned! BehaviorEngine is now active.');
+      setShowHome(true);
       return;
     }
 
@@ -229,7 +229,15 @@ export default function App() {
       setLearningStatus(`Learning your behavior... (${totalSessions}/3 sessions)`);
       logBehavior(report, null, loginUserId); // fire and forget
       setIsLoggingIn(false);
-      alert(`Session ${totalSessions}/3 recorded. Login ${3 - totalSessions} more time(s) to activate BehaviorEngine.`);
+      setShowHome(true);
+      return;
+    }
+
+    // Only run anomaly check if enough data (from session 4 onwards)
+    if (report.total_keystrokes < 3) {
+      console.log('Not enough keystrokes — skipping anomaly check');
+      setIsLoggingIn(false);
+      setShowHome(true);
       return;
     }
 

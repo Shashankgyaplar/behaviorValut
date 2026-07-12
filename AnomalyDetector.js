@@ -5,8 +5,8 @@ const SESSION_KEY = 'bv_sessions';
 const BASELINE_SESSIONS_NEEDED = 3;
 
 // Z-Score threshold (number of standard deviations from mean)
-// 2.2 is ~97% statistical confidence threshold.
-const ANOMALY_Z_THRESHOLD = 2.2; 
+// 3.0 is the industry standard sweet spot.
+const ANOMALY_Z_THRESHOLD = 3.0; 
 const ALPHA = 0.15; // EWMA smoothing factor
 
 // ─── SAVE SESSION ─────────────────────────────────────────
@@ -45,16 +45,16 @@ export const buildBaseline = async () => {
 
     const baseline = {
       keystroke_avg_ms: average(keystrokeVals),
-      keystroke_std_dev: calculateStdDev(keystrokeVals, 25), // 25ms floor to prevent division by zero
+      keystroke_std_dev: calculateStdDev(keystrokeVals, 100), // 100ms floor
 
       swipe_avg_px_per_sec: average(swipeVals),
-      swipe_std_dev: calculateStdDev(swipeVals, 60), // 60px/s floor
+      swipe_std_dev: calculateStdDev(swipeVals, 250), // 250px/s floor
 
       touch_avg_duration_ms: average(touchVals),
-      touch_std_dev: calculateStdDev(touchVals, 15), // 15ms floor
+      touch_std_dev: calculateStdDev(touchVals, 50), // 50ms floor
 
       accelerometer_avg_variance: average(accelVals),
-      accelerometer_std_dev: calculateStdDev(accelVals, 0.05), // 0.05G floor
+      accelerometer_std_dev: calculateStdDev(accelVals, 0.4), // 0.4G floor
 
       session_count: BASELINE_SESSIONS_NEEDED,
     };
@@ -79,7 +79,7 @@ export const updateEWMABaseline = async (currentReport, oldBaseline) => {
         ? ALPHA * currentReport.keystroke_avg_ms + (1 - ALPHA) * oldBaseline.keystroke_avg_ms
         : oldBaseline.keystroke_avg_ms,
       keystroke_std_dev: currentReport.keystroke_avg_ms != null
-        ? Math.max(ALPHA * Math.abs(currentReport.keystroke_avg_ms - oldBaseline.keystroke_avg_ms) + (1 - ALPHA) * oldBaseline.keystroke_std_dev, 25)
+        ? Math.max(ALPHA * Math.abs(currentReport.keystroke_avg_ms - oldBaseline.keystroke_avg_ms) + (1 - ALPHA) * oldBaseline.keystroke_std_dev, 100)
         : oldBaseline.keystroke_std_dev,
 
       // Swipe
@@ -87,7 +87,7 @@ export const updateEWMABaseline = async (currentReport, oldBaseline) => {
         ? ALPHA * currentReport.swipe_avg_px_per_sec + (1 - ALPHA) * (oldBaseline.swipe_avg_px_per_sec ?? currentReport.swipe_avg_px_per_sec)
         : oldBaseline.swipe_avg_px_per_sec,
       swipe_std_dev: currentReport.swipe_avg_px_per_sec != null
-        ? Math.max(ALPHA * Math.abs(currentReport.swipe_avg_px_per_sec - (oldBaseline.swipe_avg_px_per_sec ?? currentReport.swipe_avg_px_per_sec)) + (1 - ALPHA) * (oldBaseline.swipe_std_dev ?? 60), 60)
+        ? Math.max(ALPHA * Math.abs(currentReport.swipe_avg_px_per_sec - (oldBaseline.swipe_avg_px_per_sec ?? currentReport.swipe_avg_px_per_sec)) + (1 - ALPHA) * (oldBaseline.swipe_std_dev ?? 250), 250)
         : oldBaseline.swipe_std_dev,
 
       // Touch
@@ -95,7 +95,7 @@ export const updateEWMABaseline = async (currentReport, oldBaseline) => {
         ? ALPHA * currentReport.touch_avg_duration_ms + (1 - ALPHA) * (oldBaseline.touch_avg_duration_ms ?? currentReport.touch_avg_duration_ms)
         : oldBaseline.touch_avg_duration_ms,
       touch_std_dev: currentReport.touch_avg_duration_ms != null
-        ? Math.max(ALPHA * Math.abs(currentReport.touch_avg_duration_ms - (oldBaseline.touch_avg_duration_ms ?? currentReport.touch_avg_duration_ms)) + (1 - ALPHA) * (oldBaseline.touch_std_dev ?? 15), 15)
+        ? Math.max(ALPHA * Math.abs(currentReport.touch_avg_duration_ms - (oldBaseline.touch_avg_duration_ms ?? currentReport.touch_avg_duration_ms)) + (1 - ALPHA) * (oldBaseline.touch_std_dev ?? 50), 50)
         : oldBaseline.touch_std_dev,
 
       // Accelerometer
@@ -103,7 +103,7 @@ export const updateEWMABaseline = async (currentReport, oldBaseline) => {
         ? ALPHA * parseFloat(currentReport.accelerometer_avg_variance) + (1 - ALPHA) * oldBaseline.accelerometer_avg_variance
         : oldBaseline.accelerometer_avg_variance,
       accelerometer_std_dev: currentReport.accelerometer_avg_variance != null
-        ? Math.max(ALPHA * Math.abs(parseFloat(currentReport.accelerometer_avg_variance) - oldBaseline.accelerometer_avg_variance) + (1 - ALPHA) * oldBaseline.accelerometer_std_dev, 0.05)
+        ? Math.max(ALPHA * Math.abs(parseFloat(currentReport.accelerometer_avg_variance) - oldBaseline.accelerometer_avg_variance) + (1 - ALPHA) * oldBaseline.accelerometer_std_dev, 0.4)
         : oldBaseline.accelerometer_std_dev,
 
       session_count: (oldBaseline.session_count || 3) + 1,
