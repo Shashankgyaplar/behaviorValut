@@ -4,6 +4,7 @@ import {
   TouchableOpacity, TextInput,
   ScrollView, SafeAreaView,
   Animated, Modal,
+  Platform, StatusBar
 } from 'react-native';
 
 const ALL_TRANSACTIONS = [
@@ -75,12 +76,12 @@ export default function HistoryScreen({ onBack, handleKeyPress }) {
             <Text style={styles.summaryTitle}>{'Monthly Overview'}</Text>
             <View style={styles.summaryRow}>
               <View style={styles.summaryBlock}>
-                <Text style={styles.summaryLabel}>{'Money In'}</Text>
+                <Text style={styles.summaryLabel}>{'Credit'}</Text>
                 <Text style={styles.summaryIn}>{`+₹ ${totalIn.toLocaleString('en-IN')}`}</Text>
               </View>
               <View style={styles.summaryDivider} />
               <View style={styles.summaryBlock}>
-                <Text style={styles.summaryLabel}>{'Money Out'}</Text>
+                <Text style={styles.summaryLabel}>{'Debit'}</Text>
                 <Text style={styles.summaryOut}>{`-₹ ${totalOut.toLocaleString('en-IN')}`}</Text>
               </View>
             </View>
@@ -227,7 +228,11 @@ export default function HistoryScreen({ onBack, handleKeyPress }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#090D16' },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#090D16',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   content: { padding: 20 },
 
   // Header

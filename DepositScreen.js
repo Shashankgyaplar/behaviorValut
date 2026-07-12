@@ -4,6 +4,7 @@ import {
   TouchableOpacity, TextInput,
   ScrollView, SafeAreaView,
   Animated, KeyboardAvoidingView, Platform,
+  StatusBar,
 } from 'react-native';
 
 export default function DepositScreen({ onBack, handleKeyPress }) {
@@ -168,7 +169,11 @@ export default function DepositScreen({ onBack, handleKeyPress }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#090D16' },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#090D16',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   content: { padding: 20, paddingBottom: 40 },
 
   // Header

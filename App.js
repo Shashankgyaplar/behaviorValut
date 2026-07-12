@@ -4,7 +4,8 @@ import {
   TouchableOpacity, TextInput,
   ScrollView, SafeAreaView,
   KeyboardAvoidingView, Platform,
-  Animated, ActivityIndicator, Alert
+  Animated, ActivityIndicator, Alert,
+  StatusBar as RNStatusBar
 } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { useBehaviorTracker } from './BehaviorTracker';
@@ -109,6 +110,17 @@ export default function App() {
     checkUpdate();
   }, []);
 
+  // ─── Network/Backend Connectivity Monitor ───
+  useEffect(() => {
+    const checkConnection = async () => {
+      const online = await checkBackendHealth();
+      setIsOffline(!online);
+    };
+    checkConnection();
+    const interval = setInterval(checkConnection, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   // ─── Accelerometer lifecycle — stop when navigating away, restart on return ───
   useEffect(() => {
     // Only run accelerometer on the login screen
@@ -175,7 +187,7 @@ export default function App() {
   };
 
   const handleLogin = async () => {
-    if (!username || !password || isLoggingIn) return;
+    if (!username || !password || isLoggingIn || isOffline) return;
 
     setIsLoggingIn(true);
     const report = getAnomalyReport();
@@ -508,7 +520,7 @@ export default function App() {
             {isOffline && (
               <View style={styles.offlineBanner}>
                 <Text style={styles.offlineText}>
-                  {'Offline Mode — On-Device Protection Active'}
+                  {'Offline — Connection Required for Login'}
                 </Text>
               </View>
             )}
@@ -567,17 +579,17 @@ export default function App() {
               </View>
 
               <TouchableOpacity
-                style={[styles.button, (!username || !password || isLoggingIn) && styles.buttonDisabled]}
+                style={[styles.button, (!username || !password || isLoggingIn || isOffline) && styles.buttonDisabled]}
                 onPress={handleLogin}
-                disabled={!username || !password || isLoggingIn}
+                disabled={!username || !password || isLoggingIn || isOffline}
                 activeOpacity={0.8}
               >
                 {isLoggingIn ? (
                   <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
                   <>
-                    <Text style={styles.buttonText}>{'Login Securely'}</Text>
-                    <Text style={styles.buttonArrow}>{'→'}</Text>
+                    <Text style={styles.buttonText}>{isOffline ? 'Offline — Login Disabled' : 'Login Securely'}</Text>
+                    {!isOffline && <Text style={styles.buttonArrow}>{'→'}</Text>}
                   </>
                 )}
               </TouchableOpacity>
@@ -612,6 +624,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#090D16',
+    paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0,
   },
   container: {
     flexGrow: 1,

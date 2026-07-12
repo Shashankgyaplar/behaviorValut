@@ -3,6 +3,7 @@ import {
   StyleSheet, Text, View,
   TouchableOpacity, ScrollView,
   SafeAreaView, Animated, BackHandler,
+  Platform, StatusBar
 } from 'react-native';
 import { Accelerometer } from 'expo-sensors';
 import TransferScreen from './TransferScreen';
@@ -438,7 +439,11 @@ export default function HomeScreen({
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#090D16' },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#090D16',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   container: { flex: 1 },
   content: { padding: 20 },
 
@@ -448,7 +453,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
-    marginTop: 10,
+    marginTop: Platform.OS === 'ios' ? 10 : 15,
   },
   greeting: {
     fontSize: 13,

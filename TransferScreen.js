@@ -5,6 +5,7 @@ import {
   ScrollView, SafeAreaView,
   Animated, ActivityIndicator,
   KeyboardAvoidingView, Platform,
+  StatusBar,
 } from 'react-native';
 
 export default function TransferScreen({ onBack, onSendMoney, handleKeyPress, completedTransfer }) {
@@ -229,7 +230,11 @@ export default function TransferScreen({ onBack, onSendMoney, handleKeyPress, co
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#090D16' },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#090D16',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   content: { padding: 20, paddingBottom: 40 },
 
   // Header
