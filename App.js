@@ -544,8 +544,8 @@ export default function App() {
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>{'User ID'}</Text>
                 <TextInput
-                  style={styles.input}
-                  placeholder="Enter your User ID"
+                  style={[styles.input, isOffline && { opacity: 0.5 }]}
+                  placeholder={isOffline ? "Offline" : "Enter your User ID"}
                   placeholderTextColor="#64748B"
                   value={username}
                   onChangeText={handleSafeUsername}
@@ -554,15 +554,16 @@ export default function App() {
                   contextMenuHidden={true}
                   autoComplete="off"
                   selectTextOnFocus={false}
+                  editable={!isOffline}
                 />
               </View>
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>{'Password'}</Text>
-                <View style={styles.passwordWrapper}>
+                <View style={[styles.passwordWrapper, isOffline && { opacity: 0.5 }]}>
                   <TextInput
                     style={styles.passwordInput}
-                    placeholder="Enter your Password"
+                    placeholder={isOffline ? "Offline" : "Enter your Password"}
                     placeholderTextColor="#64748B"
                     value={password}
                     onChangeText={handleSafePassword}
@@ -571,14 +572,16 @@ export default function App() {
                     contextMenuHidden={true}
                     autoComplete="off"
                     selectTextOnFocus={false}
+                    editable={!isOffline}
                   />
                   <TouchableOpacity 
                     onPress={handleTogglePress}
+                    disabled={isOffline}
                     activeOpacity={0.8}
                     style={styles.toggleButton}
                   >
                     <Animated.View style={{ transform: [{ scale: toggleScale }] }}>
-                      <Text style={styles.toggleText}>
+                      <Text style={[styles.toggleText, isOffline && { color: '#64748B' }]}>
                         {showPassword ? 'Hide' : 'Show'}
                       </Text>
                     </Animated.View>
