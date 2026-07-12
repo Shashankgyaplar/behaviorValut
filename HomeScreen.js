@@ -318,30 +318,6 @@ export default function HomeScreen({
             </View>
           )}
 
-          {/* Trust Score Card */}
-          <View style={styles.trustCard}>
-            <View style={styles.trustTop}>
-              <View>
-                <Text style={styles.trustLabel}>{'Session Trust'}</Text>
-                <Text style={styles.trustSub}>{getTrustText()}</Text>
-              </View>
-              <View style={[styles.trustScoreCircle, { borderColor: getTrustColor() }]}>
-                <Text style={[styles.trustValue, { color: getTrustColor() }]}>
-                  {lastScore !== null ? `${getTrustPercentage()}%` : '--'}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.trustBarBg}>
-              <Animated.View style={{
-                ...styles.trustBarFill,
-                width: lastScore !== null
-                  ? `${getTrustPercentage()}%`
-                  : '0%',
-                backgroundColor: getTrustColor(),
-              }} />
-            </View>
-          </View>
-
           {/* Balance Card */}
           <View style={styles.balanceCard}>
             <View style={styles.balanceGlow} />
@@ -367,6 +343,30 @@ export default function HomeScreen({
                 </View>
                 <Text style={styles.actionLabel}>{'History'}</Text>
               </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Trust Score Card */}
+          <View style={styles.trustCard}>
+            <View style={styles.trustTop}>
+              <View>
+                <Text style={styles.trustLabel}>{'Session Trust'}</Text>
+                <Text style={styles.trustSub}>{getTrustText()}</Text>
+              </View>
+              <View style={[styles.trustScoreCircle, { borderColor: getTrustColor() }]}>
+                <Text style={[styles.trustValue, { color: getTrustColor() }]}>
+                  {lastScore !== null ? `${getTrustPercentage()}%` : '--'}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.trustBarBg}>
+              <Animated.View style={{
+                ...styles.trustBarFill,
+                width: lastScore !== null
+                  ? `${getTrustPercentage()}%`
+                  : '0%',
+                backgroundColor: getTrustColor(),
+              }} />
             </View>
           </View>
 
